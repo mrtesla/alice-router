@@ -7,6 +7,9 @@ var router
 ,   redis
 ,   router_id
 ,   port
+,   host
+,   alice_host
+,   alice_port
 ;
 
 var _route_domain
@@ -16,8 +19,13 @@ var _route_domain
 ,   _record_stats
 ;
 
-port = process.argv[2] || process.env['PORT'] || '5200';
+host = process.env['ROUTER_HOST'] || 'localhost';
+port = process.argv[2] || process.env['ROUTER_PORT'] || '5200';
 port = parseInt(port, 10);
+
+alice_host = process.env['ALICE_HOST'] || 'localhost';
+alice_port = process.env['ALICE_PORT'] || '5000';
+alice_port = parseInt(alice_port, 10);
 
 _route_domain = function(env){
   var hostname
@@ -25,7 +33,7 @@ _route_domain = function(env){
   ,   lookup_hostnames
   ;
 
-  env.router = 'localhost:'+port;
+  env.router = ''+host+':'+port;
 
   hostname = env.url.hostname;
   parts = hostname.split('.');
@@ -243,8 +251,6 @@ _record_stats = function(env) {
 redis = Redis.createClient();
 router = Router.create('router', _route_domain);
 
-var port = process.argv[2] || process.env['PORT'] || '5200';
-port = parseInt(port, 10);
 router.listen(port);
 console.log('listening on port '+port);
 
@@ -253,11 +259,11 @@ var _ping = function(){
   ,   req
   ;
 
-  body = JSON.stringify([{'type': 'router', 'machine': 'localhost', 'port': port}]);
+  body = JSON.stringify([{'type': 'router', 'machine': host, 'port': port}]);
 
   req = Http.request({
-    host: 'localhost',
-    port: 5000,
+    host: alice_host,
+    port: alice_port,
     path: '/api_v1/register.json',
     method: 'POST',
     headers: {
