@@ -1,1 +1,1 @@
-router: node proxy/router.js $PORT
+router: node router.js $PORT
