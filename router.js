@@ -1,4 +1,4 @@
-var Router = require('./src/router')
+var Router = require('alice-proxy')
 ,   Redis  = require('redis')
 ,   Http   = require('http')
 ;
