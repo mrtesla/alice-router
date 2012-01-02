@@ -13,6 +13,7 @@ var router
 ;
 
 var _route_domain
+,   _detect_maintenance_mode
 ,   _route_path
 ,   _select_backend_for_app
 ,   _select_passer_for_machine
@@ -88,6 +89,26 @@ _route_domain = function(env){
     if (!env.app) {
       // return 404
       env.respond(404);
+      _record_stats(env);
+      return;
+    }
+
+    _detect_maintenance_mode(env);
+  });
+};
+
+_detect_maintenance_mode = function(env){
+  redis.get('alice.http|applications:'+env.app+'|maintenance_mode', function(err, maintenance_mode){
+    if (err) {
+      console.error('Redis error: '+err);
+      // return 500
+      env.respond(500);
+      _record_stats(env);
+      return;
+    }
+
+    if (maintenance_mode === '1') {
+      env.respond('maintenance');
       _record_stats(env);
       return;
     }
