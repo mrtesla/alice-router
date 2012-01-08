@@ -5,10 +5,11 @@
     "contributors": [],
     "main": "./router.js",
     "scripts": {},
-    "devDependencies": {
+    "dependencies": {
         "redis":       ">=0.7.1",
         "hiredis":     ">=0.1.13",
-        "alice-proxy": ">=0.0.0"
+        "alice-proxy": ">=0.0.0",
+        "airbrake":    ">=0.0.0"
     },
     "repository": {
     }

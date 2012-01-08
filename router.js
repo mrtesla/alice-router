@@ -1,3 +1,10 @@
+if (process.env['AIRBRAKE_KEY']) {
+  var airbrake = require('airbrake');
+  airbrake = airbrake.createClient(process.env['AIRBRAKE_KEY']);
+  airbrake.handleExceptions();
+}
+
+
 var Router = require('alice-proxy')
 ,   Redis  = require('redis')
 ,   Http   = require('http')
