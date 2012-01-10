@@ -247,7 +247,14 @@ _select_passer_for_machine = function(env){
     env.passer = env.machine + ':' + endpoint;
 
     env.headers['X-Pluto-Backend-Port'] = env.port;
-    env.forward(env.machine, parseInt(endpoint, 10));
+    env.forward(
+      env.machine,
+      parseInt(endpoint, 10),
+      {
+        'X-Alice-Application': env.app,
+        'X-Alice-Process':     env.app + ':' + env.process
+      }
+    );
     _record_stats(env);
   });
 };
