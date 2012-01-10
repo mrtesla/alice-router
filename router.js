@@ -109,6 +109,7 @@ _detect_maintenance_mode = function(env){
   ;
 
   flag_names = [
+    'cache_version',
     'suspended',
     'maintenance'
   ];
@@ -122,15 +123,20 @@ _detect_maintenance_mode = function(env){
       return;
     }
 
+    // cache_version
+    if (flags[0]) {
+      env.cache_version = flags[0];
+    }
+
     // suspended
-    if (flags[0] === '1') {
+    if (flags[1] === '1') {
       env.respond('suspended');
       _record_stats(env);
       return;
     }
 
     // maintenance
-    if (flags[1] === '1') {
+    if (flags[2] === '1') {
       env.respond('maintenance');
       _record_stats(env);
       return;
@@ -267,8 +273,9 @@ _select_passer_for_machine = function(env){
       env.machine,
       parseInt(endpoint, 10),
       {
-        'X-Alice-Application': env.app,
-        'X-Alice-Process':     env.app + ':' + env.process
+        'X-Alice-Application':   env.app,
+        'X-Alice-Process':       env.process,
+        'X-Alice-Cache-Version': (env.cache_version || '0')
       }
     );
     _record_stats(env);
