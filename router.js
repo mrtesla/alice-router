@@ -105,7 +105,15 @@ _route_domain = function(env){
 };
 
 _detect_maintenance_mode = function(env){
-  redis.get('alice.http|applications:'+env.app+'|maintenance_mode', function(err, maintenance_mode){
+  var flag_names
+  ;
+
+  flag_names = [
+    'suspended',
+    'maintenance'
+  ];
+
+  redis.hmget('alice.http|flags:'+env.app, flag_names, function(err, flags){
     if (err) {
       console.error('Redis error: '+err);
       // return 500
@@ -114,7 +122,15 @@ _detect_maintenance_mode = function(env){
       return;
     }
 
-    if (maintenance_mode === '1') {
+    // suspended
+    if (flags[0] === '1') {
+      env.respond('suspended');
+      _record_stats(env);
+      return;
+    }
+
+    // maintenance
+    if (flags[1] === '1') {
       env.respond('maintenance');
       _record_stats(env);
       return;
