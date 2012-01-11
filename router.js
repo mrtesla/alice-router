@@ -42,6 +42,7 @@ _route_domain = function(env){
   ;
 
   env.router = ''+host+':'+port;
+  env.response_headers = {};
 
   hostname = env.url.hostname;
   parts = hostname.split('.');
@@ -87,8 +88,12 @@ _route_domain = function(env){
 
     actions.forEach(function(action){
       switch(action[0]){
+      case 'cache-control':
+        env.response_headers['Cache-Control'] = action[1];
+        break;
       case 'forward':
         env.app = action[1];
+        env.response_headers['X-Alice-Application'] = action[1];
         break;
       }
     });
@@ -124,9 +129,7 @@ _detect_maintenance_mode = function(env){
     }
 
     // cache_version
-    if (flags[0]) {
-      env.cache_version = flags[0];
-    }
+    env.response_headers['X-Alice-Cache-Version'] = (flags[0] || '0');
 
     // suspended
     if (flags[1] === '1') {
@@ -193,8 +196,12 @@ _route_path = function(env){
 
     actions.forEach(function(action){
       switch(action[0]){
+      case 'cache-control':
+        env.response_headers['Cache-Control'] = action[1];
+        break;
       case 'forward':
         env.process = action[1];
+        env.response_headers['X-Alice-Process'] = action[1];
         break;
       }
     });
@@ -272,11 +279,7 @@ _select_passer_for_machine = function(env){
     env.forward(
       env.machine,
       parseInt(endpoint, 10),
-      {
-        'X-Alice-Application':   env.app,
-        'X-Alice-Process':       env.process,
-        'X-Alice-Cache-Version': (env.cache_version || '0')
-      }
+      env.response_headers
     );
     _record_stats(env);
   });
