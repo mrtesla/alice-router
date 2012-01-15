@@ -42,6 +42,7 @@ _route_domain = function(env){
   ;
 
   env.router = ''+host+':'+port;
+  env.response_headers = {};
 
   hostname = env.url.hostname;
   parts = hostname.split('.');
@@ -87,8 +88,12 @@ _route_domain = function(env){
 
     actions.forEach(function(action){
       switch(action[0]){
+      case 'cache-control':
+        env.response_headers['Cache-Control'] = action[1];
+        break;
       case 'forward':
         env.app = action[1];
+        env.response_headers['X-Alice-Application'] = action[1];
         break;
       }
     });
@@ -105,7 +110,16 @@ _route_domain = function(env){
 };
 
 _detect_maintenance_mode = function(env){
-  redis.get('alice.http|applications:'+env.app+'|maintenance_mode', function(err, maintenance_mode){
+  var flag_names
+  ;
+
+  flag_names = [
+    'cache_version',
+    'suspended',
+    'maintenance'
+  ];
+
+  redis.hmget('alice.http|flags:'+env.app, flag_names, function(err, flags){
     if (err) {
       console.error('Redis error: '+err);
       // return 500
@@ -114,7 +128,18 @@ _detect_maintenance_mode = function(env){
       return;
     }
 
-    if (maintenance_mode === '1') {
+    // cache_version
+    env.response_headers['X-Alice-Cache-Version'] = (flags[0] || '0');
+
+    // suspended
+    if (flags[1] === '1') {
+      env.respond('suspended');
+      _record_stats(env);
+      return;
+    }
+
+    // maintenance
+    if (flags[2] === '1') {
       env.respond('maintenance');
       _record_stats(env);
       return;
@@ -171,8 +196,12 @@ _route_path = function(env){
 
     actions.forEach(function(action){
       switch(action[0]){
+      case 'cache-control':
+        env.response_headers['Cache-Control'] = action[1];
+        break;
       case 'forward':
         env.process = action[1];
+        env.response_headers['X-Alice-Process'] = action[1];
         break;
       }
     });
@@ -247,7 +276,11 @@ _select_passer_for_machine = function(env){
     env.passer = env.machine + ':' + endpoint;
 
     env.headers['X-Pluto-Backend-Port'] = env.port;
-    env.forward(env.machine, parseInt(endpoint, 10));
+    env.forward(
+      env.machine,
+      parseInt(endpoint, 10),
+      env.response_headers
+    );
     _record_stats(env);
   });
 };
