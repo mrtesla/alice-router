@@ -131,8 +131,17 @@ _detect_maintenance_mode = function(env){
     // cache_version
     env.response_headers['X-Alice-Cache-Version'] = (flags[0] || '0');
     env.response_headers['etag'] = function(old_value){
+      var new_value
+      ;
+
       if (old_value) {
-        return "" + old_value + "--c" + this.response_headers['X-Alice-Cache-Version'];
+        new_value = old_value.replace(
+          /["]?$/,
+          "--c" + this.response_headers['X-Alice-Cache-Version']);
+        if (old_value[0] == '"') {
+          new_value = new_value + '"';
+        }
+        return new_value;
       } else {
         return old_value;
       }
@@ -283,7 +292,7 @@ _select_passer_for_machine = function(env){
     env.passer = env.machine + ':' + endpoint;
 
     if (env.headers['if-none-match']) {
-      env.headers['if-none-match'] = env.headers['if-none-match'].split('--c')[0];
+      env.headers['if-none-match'] = env.headers['if-none-match'].replace(/[-][-]c\d+/, '');
     }
 
     env.headers['X-Pluto-Backend-Port'] = env.port;
