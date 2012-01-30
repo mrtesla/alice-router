@@ -288,23 +288,25 @@ _select_passer_for_machine = function(env){
 
 var next_stat_uuid = 0;
 _record_stats = function(env) {
-  uuid  = ((next_stat_uuid += 1) * 10000) + port;
-
-  event = JSON.stringify({
-    '_type':       "request",
-    "machine":     env.machine,
-    "router":      env.router,
-    "passer":      env.passer,
-    "application": env.app,
-    "process":     env.process,
-    "instance":    env.instance
-  });
-
-  redis.multi()
-    .lpush("fnordmetric-queue", 'alice:req:'+uuid)
-    .set("fnordmetric-event-alice:req:"+uuid, event)
-    .expire("fnordmetric-event-alice:req:"+uuid, 60)
-    .exec();
+/*
+ * uuid  = ((next_stat_uuid += 1) * 10000) + port;
+ *
+ * event = JSON.stringify({
+ *   '_type':       "request",
+ *   "machine":     env.machine,
+ *   "router":      env.router,
+ *   "passer":      env.passer,
+ *   "application": env.app,
+ *   "process":     env.process,
+ *   "instance":    env.instance
+ * });
+ *
+ * redis.multi()
+ *   .lpush("fnordmetric-queue", 'alice:req:'+uuid)
+ *   .set("fnordmetric-event-alice:req:"+uuid, event)
+ *   .expire("fnordmetric-event-alice:req:"+uuid, 60)
+ *   .exec();
+ */
 };
 
 
